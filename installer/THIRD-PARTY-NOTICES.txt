@@ -1,0 +1,31 @@
+DIT Media Workspace — included components
+
+Microsoft .NET 10 runtime and Windows Desktop runtime: MIT and component licenses.
+Source: https://github.com/dotnet/runtime and https://github.com/dotnet/wpf
+See DotNet-LICENSE.txt and DotNet-ThirdPartyNotices.txt when supplied by the SDK.
+
+VideoLAN LibVLC 3.0.24 and LibVLCSharp 3.9.4: LGPL-2.1-or-later.
+The native libraries are dynamically linked and remain replaceable in libvlc/win-x64.
+Source and build information:
+https://code.videolan.org/videolan/vlc/-/tree/3.0.24
+https://code.videolan.org/videolan/libvlc-nuget
+https://code.videolan.org/videolan/LibVLCSharp/-/tree/3.9.4
+LibVLC plugins include components under their respective open-source licenses.
+
+FFmpeg / ffprobe 9.0.2 essentials build (gyan.dev): GPL version 3.
+Unmodified standalone executables, invoked as separate processes.
+The exact revision and build configuration are in FFmpeg-build.txt; GPL text in FFmpeg-GPLv3.txt.
+Source revision: https://github.com/FFmpeg/FFmpeg/commit/946fcce07b
+Build/source downloads: https://www.gyan.dev/ffmpeg/builds/
+
+7zr 26.04: public domain edition of 7-Zip.
+https://www.7-zip.org/ and https://github.com/ip7z/7zip
+
+Microsoft.Data.Sqlite and SQLitePCLRaw: MIT/Apache-2.0; SQLite: public domain.
+https://github.com/dotnet/efcore
+https://github.com/ericsink/SQLitePCL.raw
+https://www.sqlite.org/copyright.html
+
+The Adobe DIT panel is included. Adobe Premiere Pro, Adobe Media Encoder,
+Creative Cloud, Adobe sequence presets and Adobe proxy watermark artwork are
+not redistributed. The installed Adobe applications supply their own resources.

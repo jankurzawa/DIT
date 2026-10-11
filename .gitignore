@@ -1,0 +1,25 @@
+.tools/
+**/bin/
+**/obj/
+**/TestResults/
+.vs/
+artifacts/
+*.user
+*.db*
+adobe/node_modules/
+adobe/dist/
+
+# Local application data and credentials
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.key
+*.ditconnection
+*.prproj
+*.bak
+*.log
+*.pfx
+*.p12
+.env
+.env.*
+!.env.example
