@@ -96,6 +96,7 @@ async function start() {
     try {
       await startup;
       const result=await window.webContents.executeJavaScript('window.runSmoke()');
+      await new Promise(resolve=>setTimeout(resolve,300));
       await fs.writeFile(process.env.DIT_SMOKE+'.png',(await window.webContents.capturePage()).toPNG());
       await fs.writeFile(process.env.DIT_SMOKE,JSON.stringify(result,null,2));
       worker?.kill('SIGTERM');app.exit(0);

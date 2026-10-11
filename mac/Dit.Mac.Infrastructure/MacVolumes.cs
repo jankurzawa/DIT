@@ -27,7 +27,7 @@ public sealed class MacVolumes : IVolumeInspector
         using var process=Process.Start(start)??throw new IOException("Nie uruchomiono diskutil.");
         var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();
         if(!process.WaitForExit(15000)){process.Kill();throw new IOException("diskutil nie odpowiada.");}
-        if(process.ExitCode!=0)throw new SafetyException("Nie udało się odczytać dysku: "+error.GetAwaiter().GetResult());
+        if(process.ExitCode!=0)throw new SafetyException("Nie udało się odczytać dysku: "+error.GetAwaiter().GetResult()+output.GetAwaiter().GetResult());
         return Dictionary(XDocument.Parse(output.GetAwaiter().GetResult()).Root!.Elements().Single());
     }
     public VolumeInfo Inspect(string path)
@@ -35,7 +35,14 @@ public sealed class MacVolumes : IVolumeInspector
         if(!OperatingSystem.IsMacOS())throw new PlatformNotSupportedException();
         var full=Path.GetFullPath(path);
         while(!Directory.Exists(full)&&!File.Exists(full))full=Path.GetDirectoryName(full)??throw new IOException("Nie istnieje katalog nadrzędny.");
-        var info=Diskutil("info","-plist",full);
+        // diskutil accepts devices or mount points, not arbitrary subfolders.
+        // df resolves the filesystem containing the chosen folder (including
+        // the separate APFS Data volume used by /Users on modern macOS).
+        using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var df=Processes.Run("/bin/df",["-P",full],timeout.Token).GetAwaiter().GetResult();
+        var device=Regex.Match(df,@"^(/dev/disk\d+(?:s\d+)*)\s",RegexOptions.Multiline);
+        if(!device.Success)throw new SafetyException("Nie potwierdzono lokalnego urządzenia dla tego folderu.");
+        var info=Diskutil("info","-plist",device.Groups[1].Value);
         var container=info.GetValueOrDefault("APFSContainerReference")?.ToString();
         Dictionary<string,object>? apfs=null;
         if(container is not null)apfs=Diskutil("apfs","list","-plist");

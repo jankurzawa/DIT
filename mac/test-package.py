@@ -13,6 +13,7 @@ with tempfile.TemporaryDirectory(prefix='dit-mac-test-') as directory:
     result=subprocess.run([str(bundle/'Contents/MacOS/DIT')],env=env,capture_output=True,text=True,timeout=120)
     if result.returncode:raise RuntimeError(f'Packaged app failed: {result.stdout}\n{result.stderr}\n{report.read_text() if report.exists() else "No renderer report"}')
     checks=json.loads(report.read_text());assert 'error' not in checks,checks
+    (output/f'preview-macos-{arch}.png').write_bytes(Path(str(report)+'.png').read_bytes())
     assert stat.S_IMODE((data/'local.key').stat().st_mode)==0o600
     assert stat.S_IMODE((data/'adobe.key').stat().st_mode)==0o600
     checks['passed'].append('Connection keys use owner-only filesystem permissions')
