@@ -50,7 +50,7 @@ async function start() {
     const target=media.get(new URL(request.url).hostname);
     return target?net.fetch(pathToFileURL(target).href,{headers:request.headers}):new Response('Nieznany plik',{status:404});
   });
-  window = new BrowserWindow({width:1440,height:940,minWidth:1050,minHeight:720,title:'DIT — Media Workspace',backgroundColor:'#0e131a',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
+  window = new BrowserWindow({width:1440,height:940,minWidth:1050,minHeight:720,title:'DIT — Media Workspace',show:!process.env.DIT_SMOKE,backgroundColor:'#0e131a',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true}});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   window.webContents.on('will-navigate',event=>event.preventDefault());
   window.on('closed',()=>{window=null;});
@@ -96,6 +96,7 @@ async function start() {
     try {
       await startup;
       const result=await window.webContents.executeJavaScript('window.runSmoke()');
+      await fs.writeFile(process.env.DIT_SMOKE+'.png',(await window.webContents.capturePage()).toPNG());
       await fs.writeFile(process.env.DIT_SMOKE,JSON.stringify(result,null,2));
       worker?.kill('SIGTERM');app.exit(0);
     }catch(error){await fs.writeFile(process.env.DIT_SMOKE,JSON.stringify({error:error.stack}));worker?.kill('SIGTERM');app.exit(1);}

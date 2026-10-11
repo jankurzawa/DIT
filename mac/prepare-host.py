@@ -18,6 +18,11 @@ def replace(text, old, new):
         raise RuntimeError(f"Windows source changed: expected one occurrence of {old[:80]!r}")
     return text.replace(old, new)
 
+# A drive prefix/backslash is not rooted on Unix. Reject it explicitly rather
+# than interpreting a Windows traversal string as an ordinary Mac filename.
+policies = replace(read("src/Dit.Core/Policies.cs"), "        var canonical = Path.GetFullPath(root)", "        if(!OperatingSystem.IsWindows()&&(relative.Contains('\\\\')||Regex.IsMatch(relative,@\"^[A-Za-z]:\")))throw new SafetyException(\"Niepoprawna ścieżka względna.\");\n        var canonical = Path.GetFullPath(root)")
+(OUT / "Policies.cs").write_text(policies, encoding="utf-8")
+
 host = replace(read("src/Dit.Worker/Program.cs"), "AddSingleton<IVolumeInspector,WindowsVolumes>()", "AddSingleton<IVolumeInspector,MacVolumes>()")
 host = replace(host, '"Local\\\\DIT-"', '"DIT-mac-"')
 host = replace(host, "    return File.ReadAllText(path).Trim();", "    if(OperatingSystem.IsMacOS())File.SetUnixFileMode(path,UnixFileMode.UserRead|UnixFileMode.UserWrite);\n    return File.ReadAllText(path).Trim();")

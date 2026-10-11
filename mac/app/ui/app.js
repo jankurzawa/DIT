@@ -205,4 +205,24 @@ window.addEventListener('blur',()=>{if(session()&&!state.nativeDialog)dit.api('P
 window.addEventListener('focus',()=>{if(session())guard(()=>dit.api('POST','/session/enter',{},session().token));});
 setInterval(()=>guard(async()=>{if(state.busy)return;state.busy=true;try{await overview();if(!session()||state.editor)return;if(state.view==='footage')await refreshFootage();else if(['stats','adobe'].includes(state.view)){state.admin=await api('GET','/admin');renderAdmin();}}finally{state.busy=false;}}),2000);
 const ready=guard(async()=>{const info=await dit.ready();$('#version').textContent=`DIT ${info.version} · macOS`;await projects();message('Gotowe. Kopie i kolejka działają w tle.');});
-window.runSmoke=async()=>{await ready;if(!$('#workspace').textContent.includes('Witaj w DIT'))throw Error('Fresh workspace did not render');editor();state.editorPage='team';editor();if(!$('#audio-config input')||!$('#camera-config input'))throw Error('Camera and audio editor failed');state.editor=null;await projects();return {passed:['Packaged Electron renderer starts with sandbox and context isolation','Native self-contained Mac worker starts and answers authenticated API','Fresh workspace renders without importing user data','Camera and audio source forms render']};};
+window.runSmoke=async()=>{
+  await ready;
+  if(!$('#workspace').textContent.includes('Witaj w DIT'))throw Error('Fresh workspace did not render');
+  const info=await dit.ready();editor();state.editorPage='team';editor();
+  if(!$('#audio-config input')||!$('#camera-config input'))throw Error('Camera and audio editor failed');
+  const c=state.editor.config;const root=info.data.replaceAll('\\','/');
+  c.name='UI Smoke';c.mainRoots=[root+'/Main'];c.backupRoots=[root+'/Backup'];c.proxyRoot=root+'/Proxy';c.premiereRoot=root+'/Premiere';
+  await saveEditor();const admin=state.project.tabs.find(t=>t.kind==='Admin');
+  const actor=await dit.api('POST','/login',{projectId:state.project.id,tabId:admin.id,userId:admin.userId,password:''});
+  state.tab=admin;state.sessions.set(`${state.project.id}:${admin.id}`,actor);
+  await navigate('home');if(document.querySelectorAll('.tile').length!==8)throw Error('Admin tiles failed');
+  await navigate('stats');if(!$('#view').textContent.includes('Magazyny'))throw Error('Stats failed');
+  await navigate('days');if(!$('#day-summary'))throw Error('Days failed');
+  await api('POST','/days',{at:new Date().toISOString()});await days();if(!$('#day-summary').textContent.includes('Podsumowanie'))throw Error('Day statistics failed');
+  await navigate('footage');if(!$('#asset-rows')||!$('#batch-rows')||!$('#video'))throw Error('Side by side layout failed');
+  const audio=state.project.tabs.find(t=>t.kind==='Audio');const audioActor=await dit.api('POST','/login',{projectId:state.project.id,tabId:audio.id,userId:audio.userId,password:''});
+  state.sessions.set(`${state.project.id}:${audio.id}`,audioActor);state.tab=audio;await navigate('footage');
+  if($('#audio-source').options.length!==2)throw Error('Named microphone picker failed');
+  state.tab=admin;await navigate('home');
+  return {passed:['Packaged Electron renderer starts with sandbox and context isolation','Native self-contained Mac worker starts and answers authenticated API','Fresh workspace renders without importing user data','Camera and audio source forms render and save a real project','Admin tiles, statistics and day summaries render through the worker API','Recording, ingest and player panels render side by side','Audio has one tab with the configured named microphone in its picker']};
+};

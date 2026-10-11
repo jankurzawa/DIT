@@ -4,12 +4,14 @@ cd "$(dirname "$0")/.."
 if [[ "$(uname -s)" != Darwin ]]; then echo 'This build must run on macOS.' >&2; exit 1; fi
 arch="${1:-$(uname -m)}"
 case "$arch" in arm64) rid=osx-arm64;; x64|x86_64) arch=x64; rid=osx-x64;; *) echo 'Unsupported CPU' >&2; exit 1;; esac
+mkdir -p artifacts/mac-temp
+export TMPDIR="$(pwd)/artifacts/mac-temp/"
 python3 mac/prepare-host.py
 dotnet test mac/Dit.Mac.Tests -c Release --logger 'trx;LogFileName=mac-adapter-tests.trx'
 node --test mac/app/test/*.test.cjs
 mkdir -p mac/payload/worker mac/payload/restore mac/payload/adobe mac/payload/docs mac/payload/licenses
 dotnet publish mac/Dit.Mac.Worker -c Release -r "$rid" --self-contained true -o mac/payload/worker
-dotnet publish src/Dit.Restore -c Release -r "$rid" --self-contained true -o mac/payload/restore
+dotnet publish mac/Dit.Mac.Restore -c Release -r "$rid" --self-contained true -o mac/payload/restore
 find mac/payload -name '*.pdb' -delete
 python3 mac/bundle-tools.py
 (cd adobe && npm ci && npm run build && npm test)
@@ -36,7 +38,7 @@ for size in 16 32 64 128 256 512; do
   sips -z "$double" "$double" src/Dit.Desktop/Assets/dit.png --out "mac/dit.iconset/icon_${size}x${size}@2x.png" >/dev/null
 done
 iconutil -c icns mac/dit.iconset -o mac/dit.icns
-(cd mac/app && npm ci && npm run dist -- --"$arch")
+(cd mac/app && npm ci && node node_modules/electron/install.js && npm run dist -- --"$arch")
 python3 mac/test-package.py "$arch"
 cd artifacts/macos
 for file in *.dmg *.zip; do shasum -a 256 "$file" > "$file.sha256"; done
