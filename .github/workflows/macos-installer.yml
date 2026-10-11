@@ -1,0 +1,53 @@
+name: macOS installer
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/macos-installer]
+    paths: ['mac/**', '.github/workflows/macos-installer.yml', 'adobe/package-lock.json']
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install build-only media tools
+        run: brew install ffmpeg sevenzip
+      - name: Build and test isolated macOS app
+        run: bash mac/build.sh '${{ matrix.arch }}'
+      - name: Upload installers and test evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: DIT-macOS-${{ matrix.arch }}
+          path: |
+            artifacts/macos/*.dmg
+            artifacts/macos/*.zip
+            artifacts/macos/*.sha256
+            artifacts/macos/test-*.json
+          if-no-files-found: error
+      - name: Upload diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-${{ matrix.arch }}
+          path: |
+            mac/**/TestResults/*.trx
+            mac/app/npm-debug.log

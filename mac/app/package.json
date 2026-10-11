@@ -1,0 +1,21 @@
+{
+  "name": "dit-mac",
+  "productName": "DIT",
+  "version": "0.1.20-mac.1",
+  "description": "DIT Media Workspace for macOS",
+  "author": "jankurzawa",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {"test":"node --test test/*.test.cjs", "dist":"electron-builder --mac --publish never"},
+  "devDependencies": {"electron":"44.7.0","electron-builder":"26.15.3"},
+  "build": {
+    "appId":"pl.dit.media.workspace.mac",
+    "asar":true,
+    "files":["main.cjs","preload.cjs","policy.cjs","ui/**","package.json"],
+    "extraResources":[{"from":"../payload","to":"dit"}],
+    "directories":{"output":"../../artifacts/macos"},
+    "afterPack":"./sign.cjs",
+    "mac":{"target":["dmg","zip"],"category":"public.app-category.video","minimumSystemVersion":"14.0","identity":null,"artifactName":"DIT-${version}-macOS-${arch}.${ext}","icon":"../dit.icns","extendInfo":{"NSDocumentsFolderUsageDescription":"DIT odczytuje wybrany materiał i zapisuje zweryfikowane kopie.","NSRemovableVolumesUsageDescription":"DIT zgrywa wybrane karty i zapisuje kopie na wybranych dyskach.","NSDownloadsFolderUsageDescription":"DIT może odczytać pliki wybrane przez użytkownika."}},
+    "dmg":{"title":"DIT Media Workspace","contents":[{"x":130,"y":180,"type":"file"},{"x":410,"y":180,"type":"link","path":"/Applications"}]}
+  }
+}

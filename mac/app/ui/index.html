@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' dit-media:; media-src dit-media:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>DIT — Media Workspace</title><link rel="stylesheet" href="style.css"></head>
+<body><header><div class="brand"><b>D</b><span>DIT<small>MEDIA WORKSPACE</small></span></div><select id="project" aria-label="Projekt"></select><button data-act="new" class="primary">＋ Nowy projekt</button><button data-act="lock">Wyloguj ze wszystkich kart</button></header>
+<div id="day-status" class="statusbar"></div><nav id="tabs" aria-label="Zakładki projektu"></nav>
+<main id="workspace"><div class="center"><h1>Uruchamianie DIT…</h1><progress></progress><p>Przygotowywanie przestrzeni roboczej</p></div></main>
+<footer><span id="message" role="status"></span><span id="version"></span></footer>
+<dialog id="dialog"><form id="dialog-form" method="dialog"><h2 id="dialog-title"></h2><div id="dialog-fields"></div><p id="dialog-error" role="alert"></p><div class="actions"><button value="cancel" type="button" data-act="cancel-dialog">Anuluj</button><button class="primary" type="submit">Zapisz</button></div></form></dialog>
+<script src="model.js"></script><script src="app.js"></script></body></html>

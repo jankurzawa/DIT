@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Dit.Mac.Infrastructure/Dit.Mac.Infrastructure.csproj" />
+    <Compile Include="../generated/Program.cs;../generated/AdobeLauncher.cs" />
+  </ItemGroup>
+</Project>

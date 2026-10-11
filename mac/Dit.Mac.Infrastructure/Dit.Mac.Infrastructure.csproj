@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><EnableDefaultCompileItems>false</EnableDefaultCompileItems></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Dit.Core/Dit.Core.csproj" />
+    <Compile Include="../../src/Dit.Infrastructure/*.cs" Exclude="../../src/Dit.Infrastructure/AdobeSetup.cs;../../src/Dit.Infrastructure/ProxyPresets.cs;../../src/Dit.Infrastructure/PreviewService.cs" />
+    <Compile Include="../generated/AdobeSetup.cs;../generated/ProxyPresets.cs;../generated/PreviewService.cs;MacVolumes.cs" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
+  </ItemGroup>
+</Project>
