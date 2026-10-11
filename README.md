@@ -1,5 +1,13 @@
 # DIT Media Workspace
 
+## Wersja macOS
+
+Oddzielna aplikacja i instalatory DMG dla Apple Silicon oraz Intela znajdują się w `mac/`. Instrukcja: [INSTALACJA-MACOS.md](docs/INSTALACJA-MACOS.md). Budowanie na Macu: `bash mac/build.sh arm64` lub `bash mac/build.sh x64` (SDK .NET 10, Node.js 24, Homebrew `ffmpeg` i `sevenzip` jako narzędzia kompilacji).
+
+Kod WPF, projekty i skrypty Windows pozostają niezależne. `mac/prepare-host.py` generuje w ignorowanym katalogu adaptery workera z istniejących źródeł; zmiana oczekiwanej struktury źródła przerywa generowanie. Mac używa osobnej implementacji identyfikacji dysków APFS, wyszukiwania aplikacji Adobe i podglądu Chromium. Nie zmienia oryginalnych plików. Workflow `macos-installer.yml` buduje i testuje rzeczywisty pakiet na macOS dla obu architektur. Wymagany system docelowy: macOS 14+; pakiety mają podpis ad-hoc, bez notaryzacji Apple.
+
+## Wersja Windows
+
 Aplikacja Windows: WPF, osobny proces roboczy .NET 10, SQLite i panel UXP dla Premiere Pro. Kod realizuje zabezpieczanie plików, uprawnienia, kolejki, raporty i przygotowanie projektów Adobe. To wersja do pilotażu; kwalifikacja rzeczywistych kamer, nośników i integracji Adobe pozostaje obowiązkowym etapem odbioru.
 
 ## Uruchomienie

@@ -23,3 +23,13 @@ adobe/dist/
 .env
 .env.*
 !.env.example
+
+# macOS build outputs (kept separate from the Windows package)
+mac/generated/
+mac/payload/
+mac/app/node_modules/
+mac/dit.icns
+mac/dit.iconset/
+mac/**/__pycache__/
+mac/**/*.pyc
+.DS_Store
