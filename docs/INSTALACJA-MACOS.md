@@ -17,3 +17,32 @@ Dane, klucze i log workera: `~/Library/Application Support/DIT`. Zamknięcie okn
 Automatyczne kasowanie kart na macOS jest wyłączone; wymaga osobnej kwalifikacji rzeczywistych nośników. Magazyny sieciowe, obrazy dysków i APFS z wieloma fizycznymi magazynami (np. Fusion Drive) są odrzucane, gdy nie można potwierdzić niezależności kopii.
 
 Testy runnerów macOS sprawdzają prawdziwy pakiet aplikacji, uruchomienie workera, APFS, renderowanie formularzy, kodowanie wideo i archiwa. Runner nie zawiera licencjonowanego Premiere/AME ani fizycznych kart operatorów, więc integracja Adobe i długi pilotaż na docelowym Macu pozostają do sprawdzenia przed pracą produkcyjną.
+
+## Komunikat „Apple could not verify DIT”
+
+Obecne wydanie `v0.1.20-macos` nie ma notaryzacji Apple. To ograniczenie podpisu dystrybucyjnego: pozytywny test uruchomienia na runnerze nie oznacza, że Gatekeeper zaakceptuje plik pobrany z internetu. Podpis ad-hoc ani ponowne pobranie tego samego DMG nie usuwają tego ograniczenia.
+
+Jeżeli pobrałeś DIT z właściwego repozytorium i sprawdziłeś jego pochodzenie:
+
+1. Przeciągnij DIT z DMG do **Applications / Aplikacje** i spróbuj uruchomić go z tego folderu.
+2. W komunikacie kliknij **Done / Gotowe**.
+3. Otwórz **System Settings / Ustawienia systemowe → Privacy & Security / Prywatność i ochrona**.
+4. Przewiń do sekcji **Security / Ochrona** i przy informacji o zablokowanym DIT kliknij **Open Anyway / Otwórz mimo to**.
+5. Potwierdź **Open / Otwórz** i uwierzytelnij się, jeśli macOS o to poprosi. To zapisuje wyjątek dla DIT; kolejne uruchomienia korzystają z niego.
+
+Nie wyłączaj Gatekeepera dla całego systemu i nie usuwaj masowo atrybutów kwarantanny. Na Macu zarządzanym przez firmę wyjątek może wymagać administratora. Instrukcja Apple: https://support.apple.com/en-gb/102445.
+
+## Wydanie z notaryzacją — dla osoby przygotowującej instalator
+
+Trwałe usunięcie tej blokady wymaga aktywnego Apple Developer Program, certyfikatu **Developer ID Application** z kluczem prywatnym oraz poświadczeń usługi notaryzacji Apple. Nie można zastąpić ich zmianą kodu, podpisem ad-hoc ani kontem GitHub. Nie przesyłaj certyfikatu, kluczy ani haseł w czacie.
+
+Workflow `macOS installer` ma jawny tryb `pilot` (domyślny) lub `notarized`. Dla `notarized` ustaw w **GitHub → repozytorium → Settings → Secrets and variables → Actions** sekrety:
+
+- `MAC_CSC_LINK`: certyfikat `.p12` z kluczem prywatnym, zakodowany base64;
+- `MAC_CSC_KEY_PASSWORD`: hasło eksportu `.p12`;
+- `MAC_SIGN_IDENTITY`: pełna nazwa certyfikatu `Developer ID Application: … (TEAMID)`;
+- `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`: dane konta i hasło aplikacji do notaryzacji.
+
+Tryb ten podpisuje wszystkie natywne komponenty, zachowuje wymagane uprawnienia JIT Electron i .NET, wymaga hardened runtime, notaryzuje aplikację i DMG oraz dołącza bilety Apple. Brak poświadczeń lub odrzucenie przez Apple przerywa budowanie; nie ma cichego powrotu do podpisu ad-hoc.
+
+`test-distribution-{arch}.json` oddzielnie zapisuje kontrolę DMG, podpis skopiowanej aplikacji i ocenę Gatekeepera po nadaniu kwarantanny pobranego pliku. Dopiero `notarizedGatekeeperAccepted: true`, poprawny bilet Apple i zaliczony tryb `notarized` pozwalają opisać wydanie jako zaakceptowane przez Gatekeepera. Tryb `pilot` zachowuje informację `requiresOpenAnyway: true`, jeśli Apple nie zaakceptowało aplikacji. Sam proces produkcyjnej notaryzacji wymaga jeszcze rzeczywistego uruchomienia z poświadczeniami Apple.

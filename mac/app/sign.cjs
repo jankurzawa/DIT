@@ -2,8 +2,13 @@
 // not described as Apple Developer ID signing or notarization.
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs');const path=require('node:path');
+const {distribution}=require('./distribution.cjs');
 module.exports=async context=>{
   if(context.electronPlatformName!=='darwin')throw Error('macOS packaging requires a Mac runner.');
+  // In production electron-builder imports the certificate, signs all nested
+  // components with Developer ID + hardened runtime, and notarizes the app.
+  // Do not overwrite that signature with the pilot's ad-hoc signature.
+  if(distribution()==='notarized')return;
   const bundle=path.join(context.appOutDir,'DIT.app');
   function walk(root){for(const entry of fs.readdirSync(root,{withFileTypes:true})){
     const file=path.join(root,entry.name);if(entry.isSymbolicLink())continue;
