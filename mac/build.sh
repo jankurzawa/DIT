@@ -2,6 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 if [[ "$(uname -s)" != Darwin ]]; then echo 'This build must run on macOS.' >&2; exit 1; fi
+# Fail before compiling when a production build lacks its Apple configuration.
+node -e 'require("./mac/app/distribution.cjs").distribution()'
 arch="${1:-$(uname -m)}"
 case "$arch" in arm64) rid=osx-arm64;; x64|x86_64) arch=x64; rid=osx-x64;; *) echo 'Unsupported CPU' >&2; exit 1;; esac
 mkdir -p artifacts/mac-temp
@@ -40,5 +42,6 @@ done
 iconutil -c icns mac/dit.iconset -o mac/dit.icns
 (cd mac/app && npm ci && node node_modules/electron/install.js && npm run dist -- --"$arch")
 python3 mac/test-package.py "$arch"
+python3 mac/verify-distribution.py "$arch"
 cd artifacts/macos
 for file in *.dmg *.zip; do shasum -a 256 "$file" > "$file.sha256"; done

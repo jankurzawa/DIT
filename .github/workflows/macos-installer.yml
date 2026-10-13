@@ -1,6 +1,12 @@
 name: macOS installer
 on:
   workflow_dispatch:
+    inputs:
+      distribution:
+        description: 'pilot requires Open Anyway; notarized requires Apple Developer credentials'
+        type: choice
+        default: pilot
+        options: [pilot, notarized]
   push:
     branches: [codex/macos-installer]
     paths: ['mac/**', '.github/workflows/macos-installer.yml', 'adobe/package-lock.json']
@@ -24,6 +30,7 @@ jobs:
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      DIT_MAC_DISTRIBUTION: ${{ github.event.inputs.distribution || 'pilot' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -34,7 +41,26 @@ jobs:
           node-version: '24'
       - name: Install build-only media tools
         run: brew install ffmpeg sevenzip
+      - name: Configure Apple notarization credentials
+        if: env.DIT_MAC_DISTRIBUTION == 'notarized'
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          DIT_MAC_SIGN_IDENTITY: ${{ secrets.MAC_SIGN_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for key in CSC_LINK CSC_KEY_PASSWORD DIT_MAC_SIGN_IDENTITY APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            if [[ -z "${!key}" ]]; then echo "Missing required Apple credential: $key" >&2; exit 1; fi
+          done
+          xcrun notarytool store-credentials DIT --apple-id "$APPLE_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID"
+          echo 'APPLE_KEYCHAIN_PROFILE=DIT' >> "$GITHUB_ENV"
       - name: Build and test isolated macOS app
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          DIT_MAC_SIGN_IDENTITY: ${{ secrets.MAC_SIGN_IDENTITY }}
         run: bash mac/build.sh '${{ matrix.arch }}'
       - name: Upload installers and test evidence
         uses: actions/upload-artifact@v4
